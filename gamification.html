@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem de Angajament al Angajaților</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(to right, #f0f4f8, #d9e2ec);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #333;
+        }
+        .container, .evaluation-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 1200px;
+            margin-bottom: 20px;
+        }
+        .container {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+        .left-side, .right-side, .questionnaire, .results {
+            flex: 1;
+            padding: 20px;
+            min-width: 300px;
+        }
+        .left-side {
+            border-right: 1px solid #ccc;
+        }
+        .right-side {
+            padding-left: 40px;
+        }
+        h1, h3 {
+            color: #333;
+        }
+        .button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+            display: inline-block;
+        }
+        .button:disabled {
+            background-color: #cccccc;
+        }
+        .points {
+            font-size: 2em;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .rewards, .questionnaire {
+            text-align: left;
+        }
+        .reward {
+            background-color: #f1f1f1;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        select, input {
+            margin-top: 20px;
+            padding: 10px;
+            width: 100%;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            display: block;
+            font-size: 1em;
+        }
+        .question {
+            margin: 15px 0;
+        }
+        .dialog {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+            width: 300px;
+            z-index: 1000;
+        }
+        .dialog .close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            color: red;
+        }
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+        .play-button {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
+        }
+        .play-button button {
+            background-color: #28a745;
+            color: white;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.5em;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .play-button button i {
+            margin-right: 8px;
+        }
+        .play-button p {
+            margin-top: 10px;
+            font-size: 1em;
+            text-align: center;
+            color: #333;
+        }
+        .branding {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 0.8em;
+            color: #333;
+        }
+        .login-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        .login-container input {
+            margin: 10px 0;
+            padding: 10px;
+            font-size: 1em;
+            width: 100%;
+            max-width: 300px;
+        }
+    </style>
+</head>
+<body>
+    <div class="branding">CreativeWell</div>
+    <div id="login" class="login-container">
+        <h1>Autentificare</h1>
+        <input type="text" id="username" placeholder="Utilizator">
+        <input type="password" id="password" placeholder="Parola">
+        <button class="button" onclick="login()">Autentificare</button>
+    </div>
+    <div id="main-content" style="display: none;">
+        <div class="container">
+            <div class="left-side">
+                <h1>Sistem de Angajament al Angajaților</h1>
+                <div class="points">Puncte: <span id="points">0</span></div>
+                <select id="trainingSelect">
+                    <option value="20">Training de comunicare - 20 puncte</option>
+                    <option value="30">Training de autoreglare emoțională - 30 puncte</option>
+                    <option value="40">Training de leadership - 40 puncte</option>
+                    <option value="35">Training de rezolvare de probleme - 35 puncte</option>
+                    <option value="25">Training de autocunoaștere - 25 puncte</option>
+                    <option value="50">Training de programe informatice - 50 puncte</option>
+                    <option value="30">Training de inovare - 30 puncte</option>
+                </select>
+                <input type="password" id="passwordInput" placeholder="Introdu parola">
+                <button class="button" onclick="attendTraining()">Participă la Training</button>
+            </div>
+            <div class="right-side">
+                <h3>Recompense</h3>
+                <div class="rewards">
+                    <div class="reward">Bonuri de masă în valoare de 200 de lei (40 puncte)</div>
+                    <div class="reward">Abonament de 10 ședințe la SPA (60 puncte)</div>
+                    <div class="reward">Bilete la film pentru tine și cineva drag (80 puncte)</div>
+                    <div class="reward">O cină la restaurant pentru tine și cineva drag (100 puncte)</div>
+                    <div class="reward">Voucher Bolt în valoare de 200 de lei (120 puncte)</div>
+                    <div class="reward">Titlul de Angajatul Lunii și imaginea ta pe panou (150 puncte)</div>
+                    <div class="reward">Excursie pentru tine și toată familia în Malta (200 puncte)</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="evaluation-container">
+            <div class="questionnaire">
+                <h3>Evaluarea Angajamentului la Locul de Muncă</h3>
+                <p>Instrucțiuni: Pentru fiecare dintre următoarele afirmații, vă rugăm să indicați cât de des ați simțit așa în ultimele săptămâni la locul de muncă.</p>
+                <p>Folosiți următoarea scală de evaluare:</p>
+                <ul>
+                    <li>1. Niciodată</li>
+                    <li>2. Rar</li>
+                    <li>3. Uneori</li>
+                    <li>4. Deseori</li>
+                    <li>5. Foarte des</li>
+                    <li>6. Întotdeauna</li>
+                </ul>
+                <div class="question">
+                    <label for="q1">1. La locul de muncă, mă simt plin de energie.</label>
+                    <select id="q1">
+                        <option value="1">Niciodată</option>
+                        <option value="2">Rar</option>
+                        <option value="3">Uneori</option>
+                        <option value="4">Deseori</option>
+                        <option value="5">Foarte des</option>
+                        <option value="6">Întotdeauna</option>
+                    </select>
+                </div>
+                <div class="question">
+                    <label for="q2">2. Munca mea mă face să mă simt puternic și plin de vitalitate.</label>
+                    <select id="q2">
+                        <option value="1">Niciodată</option>
+                        <option value="2">Rar</option>
+                        <option value="3">Uneori</option>
+                        <option value="4">Deseori</option>
+                        <option value="5">Foarte des</option>
+                        <option value="6">Întotdeauna</option>
+                    </select>
+                </div>
+                <div class="question">
+                    <label for="q3">3. Sunt entuziast cu privire la munca mea.</label>
+                    <select id="q3">
+                        <option value="1">Niciodată</option>
+                        <option value="2">Rar</option>
+                        <option value="3">Uneori</option>
+                        <option value="4">Deseori</option>
+                        <option value="5">Foarte des</option>
+                        <option value="6">Întotdeauna</option>
+                    </select>
+                </div>
+                <div class="question">
+                    <label for="q4">4. Munca mea mă inspiră.</label>
+                    <select id="q4">
+                        <option value="1">Niciodată</option>
+                        <option value="2">Rar</option>
+                        <option value="3">Uneori</option>
+                        <option value="4">Deseori</option>
+                        <option value="5">Foarte des</option>
+                        <option value="6">Întotdeauna</option>
+                    </select>
+                </div>
+                <div class="question">
+                    <label for="q5">5. Sunt mândru de munca pe care o fac.</label>
+                    <select id="q5">
+                        <option value="1">Niciodată</option>
+                        <option value="2">Rar</option>
+                        <option value="3">Uneori</option>
+                        <option value="4">Deseori</option>
+                        <option value="5">Foarte des</option>
+                        <option value="6">Întotdeauna</option>
+                    </select>
+                </div>
+                <div class="question">
+                    <label for="q6">6. Mă simt fericit când lucrez intens.</label>
+                    <select id="q6">
+                        <option value="1">Niciodată</option>
+                        <option value="2">Rar</option>
+                        <option value="3">Uneori</option>
+                        <option value="4">Deseori</option>
+                        <option value="5">Foarte des</option>
+                        <option value="6">Întotdeauna</option>
+                    </select>
+                </div>
+                <div class="question">
+                    <label for="q7">7. Sunt foarte absorbit de munca mea.</label>
+                    <select id="q7">
+                        <option value="1">Niciodată</option>
+                        <option value="2">Rar</option>
+                        <option value="3">Uneori</option>
+                        <option value="4">Deseori</option>
+                        <option value="5">Foarte des</option>
+                        <option value="6">Întotdeauna</option>
+                    </select>
+                </div>
+                <div class="question">
+                    <label for="q8">8. Când lucrez, uit de tot restul din jur.</label>
+                    <select id="q8">
+                        <option value="1">Niciodată</option>
+                        <option value="2">Rar</option>
+                        <option value="3">Uneori</option>
+                        <option value="4">Deseori</option>
+                        <option value="5">Foarte des</option>
+                        <option value="6">Întotdeauna</option>
+                    </select>
+                </div>
+                <div class="question">
+                    <label for="q9">9. Mă simt satisfăcut cu munca pe care o fac.</label>
+                    <select id="q9">
+                        <option value="1">Niciodată</option>
+                        <option value="2">Rar</option>
+                        <option value="3">Uneori</option>
+                        <option value="4">Deseori</option>
+                        <option value="5">Foarte des</option>
+                        <option value="6">Întotdeauna</option>
+                    </select>
+                </div>
+                <button class="button" onclick="evaluateEngagement()">Evaluează Angajamentul</button>
+            </div>
+            <div class="results">
+                <h3>Tipul de Angajament</h3>
+                <p id="engagementResult"></p>
+                <button id="adviceButton" class="button" style="display: none;" onclick="openDialog()">Află mai multe</button>
+            </div>
+        </div>
+
+        <div class="overlay" id="overlay"></div>
+        <div class="dialog" id="dialog">
+            <span class="close" onclick="closeDialog()">x</span>
+            <p id="adviceText"></p>
+        </div>
+
+        <div class="play-button">
+            <button onclick="window.location.href='https://www.youtube.com/watch?v=2t2BBU0gdO0'">
+                <i class="fa fa-play"></i>
+            </button>
+            <p>Apasă aici pentru a înțelege cum a încerca să te dezvolți și să fii un om mai bun crește angajamentul.</p>
+        </div>
+    </div>
+
+    <script>
+        // Datele utilizatorilor simulate
+        const users = {
+            'angajat1': { password: 'angajat1', points: 0 },
+            'angajat2': { password: 'angajat2', points: 0 },
+            'dianataut': { password: 'dianataut', points: 0 },
+        };
+
+        let currentUser = null;
+
+        function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            if (users[username] && users[username].password === password) {
+                currentUser = username;
+                document.getElementById('login').style.display = 'none';
+                document.getElementById('main-content').style.display = 'block';
+                loadUserData();
+            } else {
+                alert('Utilizator sau parolă incorectă');
+            }
+        }
+
+        function loadUserData() {
+            if (currentUser) {
+                const points = users[currentUser].points;
+                document.getElementById('points').innerText = points;
+            }
+        }
+
+        function updatePoints() {
+            if (currentUser) {
+                const points = users[currentUser].points;
+                document.getElementById('points').innerText = points;
+            }
+        }
+
+        function attendTraining() {
+            const trainingSelect = document.getElementById('trainingSelect');
+            const passwordInput = document.getElementById('passwordInput').value;
+            const selectedPoints = parseInt(trainingSelect.value);
+
+            if (passwordInput === 'parola123' && currentUser) {
+                users[currentUser].points += selectedPoints;
+                updatePoints();
+                checkRewards();
+                document.getElementById('passwordInput').value = ""; // Clear the password field
+            } else {
+                alert("Parola incorectă. Te rog să încerci din nou.");
+            }
+        }
+
+        function checkRewards() {
+            const points = users[currentUser].points;
+            if (points >= 200) {
+                alert("Felicitări! Ai câștigat o excursie pentru tine și toată familia în Malta!");
+            } else if (points >= 150) {
+                alert("Felicitări! Ai câștigat titlul de Angajatul Lunii și imaginea ta pe panou!");
+            } else if (points >= 120) {
+                alert("Felicitări! Ai câștigat un voucher Bolt în valoare de 200 de lei!");
+            } else if (points >= 100) {
+                alert("Felicitări! Ai câștigat o cină la restaurant pentru tine și cineva drag!");
+            } else if (points >= 80) {
+                alert("Felicitări! Ai câștigat bilete la film pentru tine și cineva drag!");
+            } else if (points >= 60) {
+                alert("Felicitări! Ai câștigat un abonament de 10 ședințe la SPA!");
+            } else if (points >= 40) {
+                alert("Felicitări! Ai câștigat bonuri de masă în valoare de 200 de lei!");
+            }
+        }
+
+        function evaluateEngagement() {
+            const q1 = parseInt(document.getElementById('q1').value);
+            const q2 = parseInt(document.getElementById('q2').value);
+            const q3 = parseInt(document.getElementById('q3').value);
+            const q4 = parseInt(document.getElementById('q4').value);
+            const q5 = parseInt(document.getElementById('q5').value);
+            const q6 = parseInt(document.getElementById('q6').value);
+            const q7 = parseInt(document.getElementById('q7').value);
+            const q8 = parseInt(document.getElementById('q8').value);
+            const q9 = parseInt(document.getElementById('q9').value);
+
+            const vigor = q1 + q2 + q6;
+            const dedication = q3 + q4 + q5;
+            const absorption = q7 + q8 + q9;
+            const total = vigor + dedication + absorption;
+
+            let engagementLevel = '';
+
+            if (total >= 36) {
+                engagementLevel = 'Nivel ridicat de angajament';
+                showAdviceButton();
+                setAdviceText(engagementLevel);
+            } else if (total >= 21) {
+                engagementLevel = 'Nivel moderat de angajament';
+                showAdviceButton();
+                setAdviceText(engagementLevel);
+            } else {
+                engagementLevel = 'Nivel scăzut de angajament';
+                showAdviceButton();
+                setAdviceText(engagementLevel);
+            }
+
+            document.getElementById('engagementResult').innerText = `Scorul tău total este: ${total}. ${engagementLevel}.`;
+        }
+
+        function showAdviceButton() {
+            document.getElementById('adviceButton').style.display = 'block';
+        }
+
+        function setAdviceText(level) {
+            let text = '';
+            if (level === 'Nivel ridicat de angajament') {
+                text = `Dragă coleg/ă,
+
+Felicitări pentru nivelul ridicat de angajament la locul de muncă! Angajamentul tău este un exemplu pentru echipă și aduce multe beneficii, inclusiv o productivitate crescută, o satisfacție profesională mare și un sentiment de împlinire. Menținerea acestui nivel de angajament este crucială pentru succesul tău continuu.
+
+Sfaturi pentru menținerea și creșterea angajamentului:
+
+Mentor și coach pentru alții: Împărtășește-ți experiențele și cunoștințele cu colegii mai noi sau mai puțin experimentați. Acest lucru poate fi extrem de satisfăcător și poate întări angajamentul tău.
+Inovează: Continuă să cauți moduri noi și eficiente de a-ți îndeplini sarcinile. Inovația te poate menține interesat și motivat.
+Dezvoltare personală: Continuă să îți dezvolți abilitățile și cunoștințele. Participă la cursuri avansate și conferințe care îți pot oferi noi perspective și idei.`;
+            } else if (level === 'Nivel moderat de angajament') {
+                text = `Dragă coleg/ă,
+
+Nivelul tău de angajament este moderat, ceea ce este un semn bun, dar există încă loc de îmbunătățire. Creșterea angajamentului poate duce la o satisfacție mai mare la locul de muncă, o performanță îmbunătățită și o sănătate mentală mai bună. Angajamentul ridicat este corelat cu un sentiment mai profund de realizare și recunoaștere profesională.
+
+Sfaturi pentru creșterea angajamentului:
+
+Colaborează cu colegii: Implică-te mai mult în activități de echipă și proiecte comune. Colaborarea poate aduce noi perspective și poate spori sentimentul de apartenență.
+Găsește-ți pasiunea în munca ta: Identifică aspectele muncii care te entuziasmează și încearcă să îți concentrezi eforturile asupra lor.
+Cere feedback: Solicită feedback regulat de la superiori și colegi. Acest lucru te poate ajuta să înțelegi mai bine punctele tale forte și zonele de îmbunătățire.`;
+            } else {
+                text = `Dragă coleg/ă,
+
+Am observat că nivelul tău de angajament la locul de muncă este mai scăzut. Este important să știi că un nivel ridicat de angajament poate aduce numeroase beneficii, atât pentru tine personal, cât și pentru cariera ta. Persoanele angajate sunt mai satisfăcute cu munca lor, au o productivitate mai mare și se bucură de o stare de bine generală.
+
+Sfaturi pentru creșterea angajamentului:
+
+Stabilește obiective clare: Definește-ți scopurile profesionale și personale. Acest lucru te va ajuta să ai o direcție clară și să te simți mai motivat.
+Îmbunătățește-ți abilitățile: Participă la cursuri sau ateliere care îți pot dezvolta competențele. Învățarea continuă te va face să te simți mai competent și încrezător.
+Creează un echilibru muncă-viață: Asigură-te că îți rezervi timp pentru activități care te relaxează și te bucură în afara muncii.`;
+            }
+            document.getElementById('adviceText').innerText = text;
+        }
+
+        function openDialog() {
+            document.getElementById('overlay').style.display = 'block';
+            document.getElementById('dialog').style.display = 'block';
+        }
+
+        function closeDialog() {
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('dialog').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
